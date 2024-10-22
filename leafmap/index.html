@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
     
     
       
@@ -30,7 +30,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.8c3ca2c6.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0253249f.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -9641,7 +9641,10 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
         <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tile_layer</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">layer_index</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="mi">15</span>
 
         <span class="n">arc_add_layer</span><span class="p">(</span><span class="n">tile_layer</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
@@ -9802,6 +9805,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
         <span class="n">info_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;on_hover&quot;</span><span class="p">,</span>
         <span class="n">zoom_to_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a shapefile to the map.</span>
 
@@ -9820,30 +9824,11 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
 <span class="sd">            FileNotFoundError: The provided shapefile could not be found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">import</span> <span class="nn">glob</span>
+        <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-        <span class="k">if</span> <span class="n">in_shp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">in_shp</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">):</span>
-            <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">temp_file_path</span><span class="p">(</span><span class="s2">&quot;.shp&quot;</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_dir</span><span class="p">):</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
-            <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_shp</span><span class="p">)</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
-            <span class="n">download_file</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;*.shp&quot;</span><span class="p">)))</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">in_shp</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                    <span class="s2">&quot;The downloaded zip file does not contain any shapefile in the root directory.&quot;</span>
-                <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">in_shp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">in_shp</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">in_shp</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;The provided shapefile could not be found.&quot;</span><span class="p">)</span>
-
-        <span class="n">geojson</span> <span class="o">=</span> <span class="n">shp_to_geojson</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-            <span class="n">geojson</span><span class="p">,</span>
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_gdf</span><span class="p">(</span>
+            <span class="n">gdf</span><span class="p">,</span>
             <span class="n">layer_name</span><span class="p">,</span>
             <span class="n">style</span><span class="p">,</span>
             <span class="n">hover_style</span><span class="p">,</span>
@@ -9852,6 +9837,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="n">info_mode</span><span class="p">,</span>
             <span class="n">zoom_to_layer</span><span class="p">,</span>
             <span class="n">encoding</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_geojson</span><span class="p">(</span>
@@ -9895,12 +9881,9 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span> <span class="nn">json</span>
         <span class="kn">import</span> <span class="nn">random</span>
-        <span class="kn">import</span> <span class="nn">requests</span>
+        <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-        <span class="c1"># style_callback_only = False</span>
-
-        <span class="c1"># if fill_colors is not None:</span>
-        <span class="c1">#     style_callback_only = True</span>
+        <span class="n">gdf</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -9917,25 +9900,42 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
                         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
                             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">in_geojson</span> <span class="o">=</span> <span class="n">github_raw_url</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
-                        <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">in_geojson</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">):</span>
-                        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                            <span class="s2">&quot;The provided GeoJSON file could not be found.&quot;</span>
-                        <span class="p">)</span>
+                        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
 
-                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">in_geojson</span>
+                <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">):</span>
+                <span class="n">gdf</span> <span class="o">=</span> <span class="n">in_geojson</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The input geojson must be a type of str or dict.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-        <span class="n">geom_type</span> <span class="o">=</span> <span class="n">get_geometry_type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Warning: The dataset does not have a CRS defined. Assuming EPSG:4326.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span>
+        <span class="k">elif</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">:</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">__geo_interface__</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">first_feature</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first_feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="c1"># Loop through the features and update the style</span>
+                <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]:</span>
+                    <span class="n">fstyle</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fstyle</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fstyle</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">pass</span>
+
+        <span class="n">geom_type</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">geom_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">style_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">style</span> <span class="o">=</span> <span class="p">{</span>
@@ -10083,17 +10083,8 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
 
         <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-                <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
-
-                <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span>
-                <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span>
-                <span class="n">west</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;minx&quot;</span><span class="p">])</span>
-                <span class="n">south</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;miny&quot;</span><span class="p">])</span>
-                <span class="n">east</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxx&quot;</span><span class="p">])</span>
-                <span class="n">north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxy&quot;</span><span class="p">])</span>
+                <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">total_bounds</span>
+                <span class="n">west</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span> <span class="o">=</span> <span class="n">bounds</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fit_bounds</span><span class="p">([[</span><span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">],</span> <span class="p">[</span><span class="n">north</span><span class="p">,</span> <span class="n">west</span><span class="p">]])</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -10168,10 +10159,8 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="n">gdf_to_geojson</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">,</span>
+            <span class="n">gdf</span><span class="p">,</span>
             <span class="n">layer_name</span><span class="p">,</span>
             <span class="n">style</span><span class="p">,</span>
             <span class="n">hover_style</span><span class="p">,</span>
@@ -10182,16 +10171,6 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="n">encoding</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-            <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span>
-            <span class="n">west</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;minx&quot;</span><span class="p">])</span>
-            <span class="n">south</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;miny&quot;</span><span class="p">])</span>
-            <span class="n">east</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxx&quot;</span><span class="p">])</span>
-            <span class="n">north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxy&quot;</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">fit_bounds</span><span class="p">([[</span><span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">],</span> <span class="p">[</span><span class="n">north</span><span class="p">,</span> <span class="n">west</span><span class="p">]])</span>
 
     <span class="k">def</span> <span class="nf">add_gdf_from_postgis</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -10241,6 +10220,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
         <span class="n">style_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fill_colors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">info_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;on_hover&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a KML file to the map.</span>
 
@@ -10283,6 +10263,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="n">style_callback</span><span class="o">=</span><span class="n">style_callback</span><span class="p">,</span>
             <span class="n">fill_colors</span><span class="o">=</span><span class="n">fill_colors</span><span class="p">,</span>
             <span class="n">info_mode</span><span class="o">=</span><span class="n">info_mode</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_vector</span><span class="p">(</span>
@@ -10333,55 +10314,29 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
 <span class="sd">            encoding (str, optional): The encoding to use to read the file. Defaults to &quot;utf-8&quot;.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">github_raw_url</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.shp&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_shp</span><span class="p">(</span>
-                <span class="n">filename</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">style</span><span class="p">,</span>
-                <span class="n">hover_style</span><span class="p">,</span>
-                <span class="n">style_callback</span><span class="p">,</span>
-                <span class="n">fill_colors</span><span class="p">,</span>
-                <span class="n">info_mode</span><span class="p">,</span>
-                <span class="n">encoding</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.json&quot;</span><span class="p">,</span> <span class="s2">&quot;.geojson&quot;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-                <span class="n">filename</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">style</span><span class="p">,</span>
-                <span class="n">hover_style</span><span class="p">,</span>
-                <span class="n">style_callback</span><span class="p">,</span>
-                <span class="n">fill_colors</span><span class="p">,</span>
-                <span class="n">info_mode</span><span class="p">,</span>
-                <span class="n">zoom_to_layer</span><span class="p">,</span>
-                <span class="n">encoding</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">geojson</span> <span class="o">=</span> <span class="n">vector_to_geojson</span><span class="p">(</span>
-                <span class="n">filename</span><span class="p">,</span>
-                <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span>
-                <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
-                <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span>
-                <span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">,</span>
-                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">fiona</span>
+        <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-                <span class="n">geojson</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">style</span><span class="p">,</span>
-                <span class="n">hover_style</span><span class="p">,</span>
-                <span class="n">style_callback</span><span class="p">,</span>
-                <span class="n">fill_colors</span><span class="p">,</span>
-                <span class="n">info_mode</span><span class="p">,</span>
-                <span class="n">zoom_to_layer</span><span class="p">,</span>
-                <span class="n">encoding</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.kml&quot;</span><span class="p">):</span>
+            <span class="n">fiona</span><span class="o">.</span><span class="n">drvsupport</span><span class="o">.</span><span class="n">supported_drivers</span><span class="p">[</span><span class="s2">&quot;KML&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rw&quot;</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;KML&quot;</span>
+
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+            <span class="n">filename</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_gdf</span><span class="p">(</span>
+            <span class="n">gdf</span><span class="p">,</span>
+            <span class="n">layer_name</span><span class="p">,</span>
+            <span class="n">style</span><span class="p">,</span>
+            <span class="n">hover_style</span><span class="p">,</span>
+            <span class="n">style_callback</span><span class="p">,</span>
+            <span class="n">fill_colors</span><span class="p">,</span>
+            <span class="n">info_mode</span><span class="p">,</span>
+            <span class="n">zoom_to_layer</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_xy_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -11131,28 +11086,32 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;pc_collections&quot;</span><span class="p">,</span> <span class="n">get_pc_collections</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">save_draw_features</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">crs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">crs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the draw features to a file.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            out_file (str): The output file path.</span>
-<span class="sd">            indent (int, optional): The indentation level when saving data as a GeoJSON. Defaults to 4.</span>
-<span class="sd">            crs (str, optional): The CRS of the output GeoJSON. Defaults to &quot;epsg:4326&quot;.</span>
+<span class="sd">            crs (str, optional): The CRS of the output GeoJSON. Defaults to &quot;EPSG:4326&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-        <span class="n">out_file</span> <span class="o">=</span> <span class="n">check_file_path</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_rois</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_draw_features</span><span class="p">()</span>
-        <span class="n">geojson</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_features</span><span class="p">,</span>
-        <span class="p">}</span>
+            <span class="n">out_file</span> <span class="o">=</span> <span class="n">check_file_path</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
 
-        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span>
-        <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span>
-        <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_draw_features</span><span class="p">()</span>
+            <span class="n">geojson</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_features</span><span class="p">,</span>
+            <span class="p">}</span>
+
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">crs</span> <span class="o">!=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">:</span>
+                <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+            <span class="n">gdf</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No draw features to save.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">update_draw_features</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the draw features by removing features that have been edited and no longer exist.&quot;&quot;&quot;</span>
@@ -12838,6 +12797,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
     <span class="k">def</span> <span class="nf">add_nwi</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;gpd.GeoDataFrame&quot;</span><span class="p">],</span>
+        <span class="n">col_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">,</span>
         <span class="n">add_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">style_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layer_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Wetlands&quot;</span><span class="p">,</span>
@@ -12848,6 +12808,7 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
 
 <span class="sd">        Args:</span>
 <span class="sd">            data (Union[str, gpd.GeoDataFrame]): The NWI data to add. It can be a file path or a GeoDataFrame.</span>
+<span class="sd">            col_name (str): The column name in the GeoDataFrame that contains the wetland types.</span>
 <span class="sd">            add_legend (bool): Whether to add a legend to the map. Defaults to True.</span>
 <span class="sd">            style_callback (Optional[Callable[[dict], dict]]): A callback function to style the features. Defaults to None.</span>
 <span class="sd">            layer_name (str): The name of the layer to add. Defaults to &quot;Wetlands&quot;.</span>
@@ -12872,8 +12833,8 @@ Map            (<span title="ipyleaflet.leaflet.Map">Map</span>)
             <span class="k">return</span> <span class="p">{</span>
                 <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;fillColor&quot;</span><span class="p">:</span> <span class="p">(</span>
-                    <span class="n">nwi</span><span class="p">[</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">]]</span>
-                    <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">nwi</span>
+                    <span class="n">nwi</span><span class="p">[</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="n">col_name</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="n">col_name</span><span class="p">]</span> <span class="ow">in</span> <span class="n">nwi</span>
                     <span class="k">else</span> <span class="s2">&quot;gray&quot;</span>
                 <span class="p">),</span>
                 <span class="s2">&quot;fillOpacity&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
@@ -14675,10 +14636,8 @@ be treated as None. Defaults to "on_hover".</p></td>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
 
-    <span class="n">data</span> <span class="o">=</span> <span class="n">gdf_to_geojson</span><span class="p">(</span><span class="n">gdf</span><span class="p">,</span> <span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span>
-
     <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-        <span class="n">data</span><span class="p">,</span>
+        <span class="n">gdf</span><span class="p">,</span>
         <span class="n">layer_name</span><span class="p">,</span>
         <span class="n">style</span><span class="p">,</span>
         <span class="n">hover_style</span><span class="p">,</span>
@@ -14689,16 +14648,6 @@ be treated as None. Defaults to "on_hover".</p></td>
         <span class="n">encoding</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-        <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span>
-        <span class="n">west</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;minx&quot;</span><span class="p">])</span>
-        <span class="n">south</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;miny&quot;</span><span class="p">])</span>
-        <span class="n">east</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxx&quot;</span><span class="p">])</span>
-        <span class="n">north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxy&quot;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fit_bounds</span><span class="p">([[</span><span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">],</span> <span class="p">[</span><span class="n">north</span><span class="p">,</span> <span class="n">west</span><span class="p">]])</span>
 </code></pre></div>
         </details>
     </div>
@@ -14985,12 +14934,9 @@ to "utf-8".</p></td>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">json</span>
     <span class="kn">import</span> <span class="nn">random</span>
-    <span class="kn">import</span> <span class="nn">requests</span>
+    <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-    <span class="c1"># style_callback_only = False</span>
-
-    <span class="c1"># if fill_colors is not None:</span>
-    <span class="c1">#     style_callback_only = True</span>
+    <span class="n">gdf</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -15007,25 +14953,42 @@ to "utf-8".</p></td>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
                         <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">in_geojson</span> <span class="o">=</span> <span class="n">github_raw_url</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">in_geojson</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                        <span class="s2">&quot;The provided GeoJSON file could not be found.&quot;</span>
-                    <span class="p">)</span>
+                    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
 
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">in_geojson</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_geojson</span><span class="p">,</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">):</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">in_geojson</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The input geojson must be a type of str or dict.&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-    <span class="n">geom_type</span> <span class="o">=</span> <span class="n">get_geometry_type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Warning: The dataset does not have a CRS defined. Assuming EPSG:4326.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span>
+    <span class="k">elif</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">!=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">:</span>
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">__geo_interface__</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">first_feature</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">first_feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># Loop through the features and update the style</span>
+            <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]:</span>
+                <span class="n">fstyle</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fstyle</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;style&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fstyle</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+    <span class="n">geom_type</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">geom_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">style</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">style_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">style</span> <span class="o">=</span> <span class="p">{</span>
@@ -15173,17 +15136,8 @@ to "utf-8".</p></td>
 
     <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-            <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
-
-            <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span>
-            <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">bounds</span>
-            <span class="n">west</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;minx&quot;</span><span class="p">])</span>
-            <span class="n">south</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;miny&quot;</span><span class="p">])</span>
-            <span class="n">east</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxx&quot;</span><span class="p">])</span>
-            <span class="n">north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="s2">&quot;maxy&quot;</span><span class="p">])</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">total_bounds</span>
+            <span class="n">west</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span> <span class="o">=</span> <span class="n">bounds</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fit_bounds</span><span class="p">([[</span><span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">],</span> <span class="p">[</span><span class="n">north</span><span class="p">,</span> <span class="n">west</span><span class="p">]])</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
@@ -15527,7 +15481,7 @@ to "utf-8".</p></td>
 
 
 <h3 id="leafmap.leafmap.Map.add_kml" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">add_kml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_kml</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Untitled&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{},</span> <span class="n">hover_style</span><span class="o">=</span><span class="p">{},</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info_mode</span><span class="o">=</span><span class="s1">&#39;on_hover&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">add_kml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_kml</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Untitled&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{},</span> <span class="n">hover_style</span><span class="o">=</span><span class="p">{},</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info_mode</span><span class="o">=</span><span class="s1">&#39;on_hover&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 
 <a href="#leafmap.leafmap.Map.add_kml" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -15623,6 +15577,7 @@ be treated as None. Defaults to "on_hover".</p></td>
     <span class="n">style_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fill_colors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">info_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;on_hover&quot;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds a KML file to the map.</span>
 
@@ -15665,6 +15620,7 @@ be treated as None. Defaults to "on_hover".</p></td>
         <span class="n">style_callback</span><span class="o">=</span><span class="n">style_callback</span><span class="p">,</span>
         <span class="n">fill_colors</span><span class="o">=</span><span class="n">fill_colors</span><span class="p">,</span>
         <span class="n">info_mode</span><span class="o">=</span><span class="n">info_mode</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div>
         </details>
@@ -16472,7 +16428,10 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
     <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tile_layer</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">layer_index</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="mi">15</span>
 
     <span class="n">arc_add_layer</span><span class="p">(</span><span class="n">tile_layer</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
@@ -17545,7 +17504,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = f&#39;{os.environ[&#39;JUP
 
 
 <h3 id="leafmap.leafmap.Map.add_nwi" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">add_nwi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">add_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Wetlands&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">add_nwi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">col_name</span><span class="o">=</span><span class="s1">&#39;WETLAND_TY&#39;</span><span class="p">,</span> <span class="n">add_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Wetlands&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 
 <a href="#leafmap.leafmap.Map.add_nwi" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -17570,6 +17529,12 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = f&#39;{os.environ[&#39;JUP
         <td><code>Union[str, gpd.GeoDataFrame]</code></td>
         <td><p>The NWI data to add. It can be a file path or a GeoDataFrame.</p></td>
         <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>col_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The column name in the GeoDataFrame that contains the wetland types.</p></td>
+        <td><code>&#39;WETLAND_TY&#39;</code></td>
       </tr>
       <tr>
         <td><code>add_legend</code></td>
@@ -17617,6 +17582,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = f&#39;{os.environ[&#39;JUP
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_nwi</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;gpd.GeoDataFrame&quot;</span><span class="p">],</span>
+    <span class="n">col_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">,</span>
     <span class="n">add_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">style_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">dict</span><span class="p">],</span> <span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">layer_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Wetlands&quot;</span><span class="p">,</span>
@@ -17627,6 +17593,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = f&#39;{os.environ[&#39;JUP
 
 <span class="sd">    Args:</span>
 <span class="sd">        data (Union[str, gpd.GeoDataFrame]): The NWI data to add. It can be a file path or a GeoDataFrame.</span>
+<span class="sd">        col_name (str): The column name in the GeoDataFrame that contains the wetland types.</span>
 <span class="sd">        add_legend (bool): Whether to add a legend to the map. Defaults to True.</span>
 <span class="sd">        style_callback (Optional[Callable[[dict], dict]]): A callback function to style the features. Defaults to None.</span>
 <span class="sd">        layer_name (str): The name of the layer to add. Defaults to &quot;Wetlands&quot;.</span>
@@ -17651,8 +17618,8 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = f&#39;{os.environ[&#39;JUP
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;black&quot;</span><span class="p">,</span>
             <span class="s2">&quot;fillColor&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="n">nwi</span><span class="p">[</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">]]</span>
-                <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="s2">&quot;WETLAND_TY&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">nwi</span>
+                <span class="n">nwi</span><span class="p">[</span><span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="n">col_name</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">][</span><span class="n">col_name</span><span class="p">]</span> <span class="ow">in</span> <span class="n">nwi</span>
                 <span class="k">else</span> <span class="s2">&quot;gray&quot;</span>
             <span class="p">),</span>
             <span class="s2">&quot;fillOpacity&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
@@ -19712,7 +19679,10 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
     <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tile_layer</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">layer_index</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">zoom_to_layer</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">center</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">tile_client</span><span class="o">.</span><span class="n">default_zoom</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="mi">15</span>
 
     <span class="n">arc_add_layer</span><span class="p">(</span><span class="n">tile_layer</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 
@@ -19977,7 +19947,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
 
 
 <h3 id="leafmap.leafmap.Map.add_shp" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">add_shp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_shp</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Untitled&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{},</span> <span class="n">hover_style</span><span class="o">=</span><span class="p">{},</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info_mode</span><span class="o">=</span><span class="s1">&#39;on_hover&#39;</span><span class="p">,</span> <span class="n">zoom_to_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">add_shp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_shp</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="s1">&#39;Untitled&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{},</span> <span class="n">hover_style</span><span class="o">=</span><span class="p">{},</span> <span class="n">style_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info_mode</span><span class="o">=</span><span class="s1">&#39;on_hover&#39;</span><span class="p">,</span> <span class="n">zoom_to_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 
 <a href="#leafmap.leafmap.Map.add_shp" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -20081,6 +20051,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
     <span class="n">info_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;on_hover&quot;</span><span class="p">,</span>
     <span class="n">zoom_to_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds a shapefile to the map.</span>
 
@@ -20099,30 +20070,11 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
 <span class="sd">        FileNotFoundError: The provided shapefile could not be found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="kn">import</span> <span class="nn">glob</span>
+    <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-    <span class="k">if</span> <span class="n">in_shp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">in_shp</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">):</span>
-        <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">temp_file_path</span><span class="p">(</span><span class="s2">&quot;.shp&quot;</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_dir</span><span class="p">):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
-        <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_shp</span><span class="p">)</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
-        <span class="n">download_file</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="s2">&quot;*.shp&quot;</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">in_shp</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                <span class="s2">&quot;The downloaded zip file does not contain any shapefile in the root directory.&quot;</span>
-            <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">in_shp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">in_shp</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">in_shp</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;The provided shapefile could not be found.&quot;</span><span class="p">)</span>
-
-    <span class="n">geojson</span> <span class="o">=</span> <span class="n">shp_to_geojson</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-        <span class="n">geojson</span><span class="p">,</span>
+    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">in_shp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_gdf</span><span class="p">(</span>
+        <span class="n">gdf</span><span class="p">,</span>
         <span class="n">layer_name</span><span class="p">,</span>
         <span class="n">style</span><span class="p">,</span>
         <span class="n">hover_style</span><span class="p">,</span>
@@ -20131,6 +20083,7 @@ os.environ[&#39;LOCALTILESERVER_CLIENT_PREFIX&#39;] = &#39;proxy/{port}&#39;
         <span class="n">info_mode</span><span class="p">,</span>
         <span class="n">zoom_to_layer</span><span class="p">,</span>
         <span class="n">encoding</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 </code></pre></div>
         </details>
@@ -20899,55 +20852,29 @@ be treated as None. Defaults to "on_hover".</p></td>
 <span class="sd">        encoding (str, optional): The encoding to use to read the file. Defaults to &quot;utf-8&quot;.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">github_raw_url</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.shp&quot;</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_shp</span><span class="p">(</span>
-            <span class="n">filename</span><span class="p">,</span>
-            <span class="n">layer_name</span><span class="p">,</span>
-            <span class="n">style</span><span class="p">,</span>
-            <span class="n">hover_style</span><span class="p">,</span>
-            <span class="n">style_callback</span><span class="p">,</span>
-            <span class="n">fill_colors</span><span class="p">,</span>
-            <span class="n">info_mode</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.json&quot;</span><span class="p">,</span> <span class="s2">&quot;.geojson&quot;</span><span class="p">]:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-            <span class="n">filename</span><span class="p">,</span>
-            <span class="n">layer_name</span><span class="p">,</span>
-            <span class="n">style</span><span class="p">,</span>
-            <span class="n">hover_style</span><span class="p">,</span>
-            <span class="n">style_callback</span><span class="p">,</span>
-            <span class="n">fill_colors</span><span class="p">,</span>
-            <span class="n">info_mode</span><span class="p">,</span>
-            <span class="n">zoom_to_layer</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">geojson</span> <span class="o">=</span> <span class="n">vector_to_geojson</span><span class="p">(</span>
-            <span class="n">filename</span><span class="p">,</span>
-            <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span>
-            <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
-            <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span>
-            <span class="n">epsg</span><span class="o">=</span><span class="s2">&quot;4326&quot;</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">fiona</span>
+    <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_geojson</span><span class="p">(</span>
-            <span class="n">geojson</span><span class="p">,</span>
-            <span class="n">layer_name</span><span class="p">,</span>
-            <span class="n">style</span><span class="p">,</span>
-            <span class="n">hover_style</span><span class="p">,</span>
-            <span class="n">style_callback</span><span class="p">,</span>
-            <span class="n">fill_colors</span><span class="p">,</span>
-            <span class="n">info_mode</span><span class="p">,</span>
-            <span class="n">zoom_to_layer</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.kml&quot;</span><span class="p">):</span>
+        <span class="n">fiona</span><span class="o">.</span><span class="n">drvsupport</span><span class="o">.</span><span class="n">supported_drivers</span><span class="p">[</span><span class="s2">&quot;KML&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;rw&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;driver&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;KML&quot;</span>
+
+    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_gdf</span><span class="p">(</span>
+        <span class="n">gdf</span><span class="p">,</span>
+        <span class="n">layer_name</span><span class="p">,</span>
+        <span class="n">style</span><span class="p">,</span>
+        <span class="n">hover_style</span><span class="p">,</span>
+        <span class="n">style_callback</span><span class="p">,</span>
+        <span class="n">fill_colors</span><span class="p">,</span>
+        <span class="n">info_mode</span><span class="p">,</span>
+        <span class="n">zoom_to_layer</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -24558,7 +24485,7 @@ Defaults to True.</p></td>
 
 
 <h3 id="leafmap.leafmap.Map.save_draw_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">save_draw_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="s1">&#39;epsg:4326&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">save_draw_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="s1">&#39;EPSG:4326&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 
 <a href="#leafmap.leafmap.Map.save_draw_features" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -24585,44 +24512,42 @@ Defaults to True.</p></td>
         <td><em>required</em></td>
       </tr>
       <tr>
-        <td><code>indent</code></td>
-        <td><code>int</code></td>
-        <td><p>The indentation level when saving data as a GeoJSON. Defaults to 4.</p></td>
-        <td><code>4</code></td>
-      </tr>
-      <tr>
         <td><code>crs</code></td>
         <td><code>str</code></td>
-        <td><p>The CRS of the output GeoJSON. Defaults to "epsg:4326".</p></td>
-        <td><code>&#39;epsg:4326&#39;</code></td>
+        <td><p>The CRS of the output GeoJSON. Defaults to "EPSG:4326".</p></td>
+        <td><code>&#39;EPSG:4326&#39;</code></td>
       </tr>
   </tbody>
 </table>
         <details class="quote">
           <summary>Source code in <code>leafmap/leafmap.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">save_draw_features</span><span class="p">(</span>
-    <span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">crs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">out_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">crs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save the draw features to a file.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        out_file (str): The output file path.</span>
-<span class="sd">        indent (int, optional): The indentation level when saving data as a GeoJSON. Defaults to 4.</span>
-<span class="sd">        crs (str, optional): The CRS of the output GeoJSON. Defaults to &quot;epsg:4326&quot;.</span>
+<span class="sd">        crs (str, optional): The CRS of the output GeoJSON. Defaults to &quot;EPSG:4326&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-    <span class="n">out_file</span> <span class="o">=</span> <span class="n">check_file_path</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_rois</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">update_draw_features</span><span class="p">()</span>
-    <span class="n">geojson</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_features</span><span class="p">,</span>
-    <span class="p">}</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">check_file_path</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
 
-    <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">geojson</span><span class="p">)</span>
-    <span class="n">gdf</span><span class="o">.</span><span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span>
-    <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_draw_features</span><span class="p">()</span>
+        <span class="n">geojson</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_features</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">gdf</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">geojson</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">crs</span> <span class="o">!=</span> <span class="s2">&quot;EPSG:4326&quot;</span><span class="p">:</span>
+            <span class="n">gdf</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">to_crs</span><span class="p">(</span><span class="n">crs</span><span class="p">)</span>
+        <span class="n">gdf</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No draw features to save.&quot;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -27128,7 +27053,7 @@ treated as None. Defaults to "on_hover".</p></td>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.525ec568.min.js"></script>
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
       
         <script src="../js/timeago.min.js"></script>
       
